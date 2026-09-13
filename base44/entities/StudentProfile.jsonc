@@ -1,0 +1,122 @@
+{
+  "name": "StudentProfile",
+  "type": "object",
+  "properties": {
+    "grade_level": {
+      "type": "string",
+      "enum": [
+        "9th",
+        "10th",
+        "11th",
+        "12th"
+      ],
+      "description": "Current grade level"
+    },
+    "gpa": {
+      "type": "number",
+      "description": "Current GPA on 4.0 scale"
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Academic and career interests"
+    },
+    "goals": {
+      "type": "string",
+      "description": "College and career goals"
+    },
+    "budget_range": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "no_preference"
+      ],
+      "description": "Family budget preference for college"
+    },
+    "location_preference": {
+      "type": "string",
+      "description": "Preferred college locations"
+    },
+    "extracurriculars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Current extracurricular activities"
+    },
+    "test_scores": {
+      "type": "object",
+      "properties": {
+        "sat": {
+          "type": "number"
+        },
+        "act": {
+          "type": "number"
+        },
+        "psat": {
+          "type": "number"
+        }
+      },
+      "description": "Standardized test scores if available"
+    },
+    "school_name": {
+      "type": "string",
+      "description": "Name of the student's high school"
+    },
+    "district": {
+      "type": "string",
+      "description": "School district name"
+    },
+    "school_type": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private",
+        "charter",
+        "homeschool"
+      ],
+      "description": "Type of school the student attends"
+    },
+    "current_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Classes the student is currently taking or has completed"
+    },
+    "conversation_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "AI conversation history"
+    },
+    "plan_generated": {
+      "type": "boolean",
+      "description": "Whether a plan has been generated"
+    },
+    "plan_data": {
+      "type": "object",
+      "description": "Generated college plan data"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "description": "Whether initial onboarding is complete"
+    }
+  },
+  "required": [
+    "grade_level"
+  ]
+}
