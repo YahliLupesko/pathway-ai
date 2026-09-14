@@ -1,0 +1,38 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['infra/**', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+
+# OIDC: no static AWS keys. Requires the CI stack deployed and the
+# AWS_DEPLOY_ROLE_ARN secret set to its DeployRoleArn output.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: infra/package-lock.json
+
+      - run: npm ci
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-west-2
+
+      # Core dev stacks. Web/Observability/CI are deployed intentionally out-of-band.
+      - run: npx cdk deploy pathway-dev-data pathway-dev-auth pathway-dev-api --require-approval never --context env=dev
