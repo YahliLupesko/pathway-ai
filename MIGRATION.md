@@ -18,6 +18,29 @@ with the URL an uncapped Gemini budget.
 
 ---
 
+## Status — updated 2026-09-13
+
+| Phase | State | Notes |
+|---|---|---|
+| 0 — Discovery & prep | ✅ **Done** | SES production-access **pending AWS review** (only trailing item) |
+| 1 — Foundation | ▶ **Next** | CDK skeleton, CI/CD, DynamoDB, Cognito + Google IdP |
+| 2 — Data API | ⬜ Not started | |
+| 3 — LLM services | ⬜ Not started | |
+| 4 — Email | ⬜ Not started | SES **DNS/identity already done** in Phase 0; only the Lambda + bounce handling remain |
+| 5 — Frontend | ⬜ Not started | |
+| 6 — Launch | ⬜ Not started | |
+
+**Confirmed in Phase 0** (details in §3; setup facts also in project memory):
+- **Repo published:** `github.com/YahliLupesko/pathway-ai` (push as the `YahliLupesko` account).
+- **AWS access:** CLI profile `pathway`, account `044771288438` (IAM user `iam_pathway_ai`), region `us-west-2`.
+- **Model — "Flash everywhere":** `gemini-3.5-flash` for both chat *and* plan generation. This supersedes decision #3's wording and the `gemini_3_1_pro` alias currently in `GeneratePlan.jsx:125`.
+- **Gemini key:** Secrets Manager `pathway/gemini-api-key` (paid tier). Grounding via `tools:[{google_search:{}}]` confirmed working — billed **per search query** (~2 queries/prompt observed; $14/1k after 5k free prompts/mo). Responses carry `searchEntryPoint.renderedContent` (Google Search Suggestions) that **must be rendered in the UI** per grounding terms — see §7.3 / §9.
+- **SES:** domain `pathway-ai.org` **verified** in `us-west-2` — Easy DKIM + custom MAIL FROM `mail.pathway-ai.org` + DMARC `v=DMARC1; p=none; rua=mailto:dmarc@pathway-ai.org`. DNS in Cloudflare (Email Routing enabled; `dmarc@` forwards to owner). Production-access request submitted 2026-09-13; **status PENDING** (responded to AWS's follow-up for use-case detail). Re-check with `aws sesv2 get-account --profile pathway --region us-west-2` for `ProductionAccessEnabled: true`.
+
+**Immediate next step:** start **Phase 1**. One external prerequisite blocks the Cognito Google IdP — create a **Google OAuth 2.0 client** (client ID + secret) in the *same* Google Cloud project as the Gemini key.
+
+---
+
 ## 0. Decisions — all settled
 
 Confirmed 2026-09-13. Recorded so they don't get re-opened mid-build.
@@ -710,22 +733,27 @@ identity-mismatch support burden, no model-swap behaviour drift, no web-search b
 
 ## 13. Checklist
 
-**Phase 0 — Discovery (1 day)**
-- [ ] Request SES production access; verify sending domain — **do this first**
-- [ ] Resolve Base44's `gemini_3_flash` alias to a real Google model id
-- [ ] Determine Base44's default `InvokeLLM` model (plan generation passes none)
-- [ ] Create a **paid-tier** Gemini API key → Secrets Manager
-- [ ] Confirm Search grounding works on the chosen model; record per-request price + free allowance
-- [ ] Confirm whether `responseSchema` and `googleSearch` can combine in one call (§7.2)
-- [ ] Region `us-west-2` (ACM cert in `us-east-1` via CDK)
-- [ ] One throwaway export of Base44 test records to S3 (§4.4)
+**Phase 0 — Discovery (1 day) — ✅ COMPLETE (2026-09-13)**
+- [x] Verify sending domain — `pathway-ai.org` verified (DKIM + MAIL FROM + DMARC)
+- [x] Request SES production access — submitted; **status PENDING AWS review** (only open item)
+- [x] Resolve `gemini_3_flash` alias to a real Google model id — **`gemini-3.5-flash`**
+- [x] Determine default `InvokeLLM` model — moot: code now passes explicit models; **standardized on `gemini-3.5-flash` (Flash everywhere)**
+- [x] Create a **paid-tier** Gemini API key → Secrets Manager — **`pathway/gemini-api-key`**
+- [x] Confirm Search grounding works; record price — **confirmed**; $14/1k queries after 5k free prompts/mo, ~2 queries/prompt
+- [ ] Confirm whether `responseSchema` and `googleSearch` can combine in one call (§7.2) — **STILL OPEN**; verify early in Phase 3 (some docs say search tools can't mix with non-search tools)
+- [x] Region `us-west-2` (ACM cert in `us-east-1` via CDK)
+- [~] ~~One throwaway export of Base44 test records to S3~~ — **skipped: no data to migrate**
 
-**Phase 1 — Foundation (1 week)**
+**Phase 1 — Foundation (1 week) — ▶ NEXT**
+- [ ] **PREREQ (external):** Google OAuth 2.0 client (ID + secret) in the same GCP project as the Gemini key → feeds the Cognito Google IdP. Set redirect URIs to the Cognito Hosted UI domain.
+- [ ] Bootstrap CDK (TypeScript) into account `044771288438` / `us-west-2` using profile `pathway`; ACM cert stack in `us-east-1`
 - [ ] CDK app; stacks: Data, Auth, Api, Web, Observability; dev + prod
-- [ ] GitHub Actions + OIDC role (no static keys)
+- [ ] GitHub Actions + OIDC role (no static keys) — repo `YahliLupesko/pathway-ai`
 - [ ] DynamoDB table: on-demand, **PITR**, CMK, TTL attribute
 - [ ] Cognito pool + Google IdP + Hosted UI + PKCE app client (open signup)
 - [ ] Hello-world Lambda behind the JWT authorizer; a Google account logs in
+
+_Carried-over open question (blocks Phase 3, not Phase 1): confirm `responseSchema` + `googleSearch` can combine in one Gemini call — plan generation relies on both. If they can't, plan-gen needs a two-step (grounded research → schema-constrained synthesis)._
 
 **Phase 2 — Data API (3 days)**
 - [ ] `profile-api` Lambda; five routes; zod validation
