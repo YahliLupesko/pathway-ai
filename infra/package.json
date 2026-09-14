@@ -1,0 +1,24 @@
+{
+  "name": "pathway-infra",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "pathway": "bin/pathway.ts"
+  },
+  "scripts": {
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "aws-cdk": "^2.1141.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.269.0",
+    "constructs": "^10.3.0"
+  }
+}

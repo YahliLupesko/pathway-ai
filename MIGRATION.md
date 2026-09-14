@@ -23,7 +23,7 @@ with the URL an uncapped Gemini budget.
 | Phase | State | Notes |
 |---|---|---|
 | 0 — Discovery & prep | ✅ **Done** | SES production-access **pending AWS review** (only trailing item) |
-| 1 — Foundation | ▶ **Next** | CDK skeleton, CI/CD, DynamoDB, Cognito + Google IdP |
+| 1 — Foundation | ▶ **In progress** | CDK app in `infra/`. **Core (Data/Auth/Api) deployed to dev & verified.** Remaining: Google IdP (needs OAuth client), Web/Observability/CI (written, deploy after review) |
 | 2 — Data API | ⬜ Not started | |
 | 3 — LLM services | ⬜ Not started | |
 | 4 — Email | ⬜ Not started | SES **DNS/identity already done** in Phase 0; only the Lambda + bounce handling remain |
@@ -744,14 +744,16 @@ identity-mismatch support burden, no model-swap behaviour drift, no web-search b
 - [x] Region `us-west-2` (ACM cert in `us-east-1` via CDK)
 - [~] ~~One throwaway export of Base44 test records to S3~~ — **skipped: no data to migrate**
 
-**Phase 1 — Foundation (1 week) — ▶ NEXT**
+**Phase 1 — Foundation (1 week) — ▶ IN PROGRESS** (CDK app in `infra/`; PR #3)
 - [ ] **PREREQ (external):** Google OAuth 2.0 client (ID + secret) in the same GCP project as the Gemini key → feeds the Cognito Google IdP. Set redirect URIs to the Cognito Hosted UI domain.
-- [ ] Bootstrap CDK (TypeScript) into account `044771288438` / `us-west-2` using profile `pathway`; ACM cert stack in `us-east-1`
-- [ ] CDK app; stacks: Data, Auth, Api, Web, Observability; dev + prod
-- [ ] GitHub Actions + OIDC role (no static keys) — repo `YahliLupesko/pathway-ai`
-- [ ] DynamoDB table: on-demand, **PITR**, CMK, TTL attribute
-- [ ] Cognito pool + Google IdP + Hosted UI + PKCE app client (open signup)
-- [ ] Hello-world Lambda behind the JWT authorizer; a Google account logs in
+- [x] Bootstrap CDK (TypeScript) into account `044771288438` / `us-west-2` using profile `pathway`
+- [x] CDK app; stacks: Data, Auth, Api (deployed to dev) + Web, Observability (written, not yet deployed)
+- [~] GitHub Actions + OIDC role — workflow + `ci-stack` written; **not deployed** (review IAM trust policy first)
+- [x] DynamoDB table: on-demand, **PITR**, CMK, TTL attribute — `pathway-dev` ACTIVE
+- [x] Cognito pool + Hosted UI + PKCE app client (open signup) — Google IdP **gated/stubbed** pending OAuth client
+- [~] Hello Lambda behind JWT authorizer — deployed; `/health`→200, `/hello`→401 without token. "Google account logs in" blocked on the OAuth client prereq.
+
+_dev resource ids (User Pool, API URL, Hosted UI domain, etc.) are recorded in local session memory, not committed (account-id hygiene for the public repo)._
 
 _Carried-over open question (blocks Phase 3, not Phase 1): confirm `responseSchema` + `googleSearch` can combine in one Gemini call — plan generation relies on both. If they can't, plan-gen needs a two-step (grounded research → schema-constrained synthesis)._
 

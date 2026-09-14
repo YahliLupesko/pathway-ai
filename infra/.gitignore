@@ -1,0 +1,7 @@
+node_modules
+cdk.out
+*.d.ts
+*.js
+!lambda/**/*.js
+.cdk.staging
+cdk-outputs*.json
