@@ -31,8 +31,9 @@ export class CiStack extends cdk.Stack {
       maxSessionDuration: cdk.Duration.hours(1),
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' },
+        // Scoped to the main branch only (not any ref/PR) to limit blast radius.
         StringLike: {
-          'token.actions.githubusercontent.com:sub': `repo:${GITHUB_REPO}:*`,
+          'token.actions.githubusercontent.com:sub': `repo:${GITHUB_REPO}:ref:refs/heads/main`,
         },
       }),
     });
